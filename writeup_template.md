@@ -20,6 +20,9 @@
 [image1]: ./misc_images/misc1.png
 [image2]: ./misc_images/misc3.png
 [image3]: ./misc_images/misc2.png
+[image4]: ./misc_images/reference_frames.png
+[image5]: ./misc_images/links_joints.png
+[image6]: ./misc_images/urdf_ref_frames.png
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/972/view) Points
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
@@ -34,9 +37,58 @@ You're reading it!
 ### Kinematic Analysis
 #### 1. Run the forward_kinematics demo and evaluate the kr210.urdf.xacro file to perform kinematic analysis of Kuka KR210 robot and derive its DH parameters.
 
-Here is an example of how to include an image in your writeup.
+This is the schematic showing the links, joints, and common normals only. Rather than try to draw this
+by hand, I found it more efficient to simply screen-shot this from the lesson material (it's hard enough to "follow"
+even with such a 'clean' drawing; doing it by hand made no sense since I'd more or less just end up copying this
+file).
 
-![alt text][image1]
+NOTE: all DH parameter tables use JJ Craig (2005) conventions 
+(Craig, JJ. (2005). Introduction to Robotics: Mechanics and Control, 3rd Ed (Pearson Education, Inc., NJ))
+
+Figure 1 - Robot Schematic
+![alt_text][image5]
+
+Figure 2 - Design of links, joints, axes, and origins based on assignment using Craig conventions WITHOUT respect to URDF
+![alt_text][image4]
+
+Figure 3 - Definition of axes & origins AS DEFINED IN URDF (note variance from diagram above; URDF origins shown as black triangles)
+![alt text][image6]
+
+
+Next step is to begin deriving the DH parameter table. To begin this process, I first resolved the easiest entries per the following "rules"
+around special cases involving the lines from reference frame Z(i-1) to Z(i)
+a.  Collinear lines will yield alpha = 0 and a = 0
+b.  Parallel lines will yield alpha = 0 and a <> 0
+c.  Intersecting lines will yield alpha <>0 and a = 0
+d.  If the common normal intersects Z-hat(i) at the origin of frame i, then:
+    If the joint is a revolute, d(i) = 0
+    If the joint is prismatic, then theta(i) = 0
+    
+
+The initial DH table after applying the above is as follows (based on Figure 2 above):
+
+i | alpha(i-1) | a(i-1) | d(i) | theta(i) | note
+--- | --- | --- | --- | --- | ---
+1 | 0 | 0 | ? | ? | case a above
+2 | ? | ? | 0 | ? | case b above
+3 | 0 | 0 | 0 | ? | case a and d (revolute) above
+4 | 0 | ? | ? | ? | case c above
+5 | 0 | ? | ? | ? | case c above
+6 | 0 | ? | ? | ? | case c above
+7 (G) | 0 | 0 | ? | 0 | case a and d (fixed, which in this case acts like a prismatic set to 0) above
+
+Next, we will examine the origins and axes in the URDF file (Figure 3) as compared to the origins and axes assigned using Craig conventions
+(Figure 2).
+
+i | alpha(i-1) | a(i-1) | d(i) | theta(i) | note
+--- | --- | --- | --- | --- | ---
+1 | 0 | 0 | ? | ? | case a above
+2 | ? | ? | 0 | ? | case b above
+3 | 0 | 0 | 0 | ? | case a and d (revolute) above
+4 | 0 | ? | ? | ? | case c above
+5 | 0 | ? | ? | ? | case c above
+6 | 0 | ? | ? | ? | case c above
+7 (G) | 0 | 0 | ? | 0 | case a and d (fixed, which in this case acts like a prismatic set to 0) above
 
 #### 2. Using the DH parameter table you derived earlier, create individual transformation matrices about each joint. In addition, also generate a generalized homogeneous transform between base_link and gripper_link using only end-effector(gripper) pose.
 
