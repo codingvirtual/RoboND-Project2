@@ -23,6 +23,10 @@
 [image4]: ./misc_images/reference_frames.png
 [image5]: ./misc_images/links_joints.png
 [image6]: ./misc_images/urdf_ref_frames.png
+[image7]: ./misc_images/SphericalWrist.jpg
+[image8]: ./misc_images/ik_1.png
+[image9]: ./misc_images/ik_2.png
+[image10]: ./misc_images/ik_3.png
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/972/view) Points
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
@@ -55,40 +59,17 @@ Figure 3 - Definition of axes & origins AS DEFINED IN URDF (note variance from d
 ![alt text][image6]
 
 
-Next step is to begin deriving the DH parameter table. To begin this process, I first resolved the easiest entries per the following "rules"
-around special cases involving the lines from reference frame Z(i-1) to Z(i)
-a.  Collinear lines will yield alpha = 0 and a = 0
-b.  Parallel lines will yield alpha = 0 and a <> 0
-c.  Intersecting lines will yield alpha <>0 and a = 0
-d.  If the common normal intersects Z-hat(i) at the origin of frame i, then:
-    If the joint is a revolute, d(i) = 0
-    If the joint is prismatic, then theta(i) = 0
-    
+Next step is to derive the DH parameter table as described in the lesson. The completed table is below:
 
-The initial DH table after applying the above is as follows (based on Figure 2 above):
-
-i | alpha(i-1) | a(i-1) | d(i) | theta(i) | note
---- | --- | --- | --- | --- | ---
-1 | 0 | 0 | ? | ? | case a above
-2 | ? | ? | 0 | ? | case b above
-3 | 0 | 0 | 0 | ? | case a and d (revolute) above
-4 | 0 | ? | ? | ? | case c above
-5 | 0 | ? | ? | ? | case c above
-6 | 0 | ? | ? | ? | case c above
-7 (G) | 0 | 0 | ? | 0 | case a and d (fixed, which in this case acts like a prismatic set to 0) above
-
-Next, we will examine the origins and axes in the URDF file (Figure 3) as compared to the origins and axes assigned using Craig conventions
-(Figure 2).
-
-i | alpha(i-1) | a(i-1) | d(i) | theta(i) | note
---- | --- | --- | --- | --- | ---
-1 | 0 | 0 | ? | ? | case a above
-2 | ? | ? | 0 | ? | case b above
-3 | 0 | 0 | 0 | ? | case a and d (revolute) above
-4 | 0 | ? | ? | ? | case c above
-5 | 0 | ? | ? | ? | case c above
-6 | 0 | ? | ? | ? | case c above
-7 (G) | 0 | 0 | ? | 0 | case a and d (fixed, which in this case acts like a prismatic set to 0) above
+Links | alpha(i-1) | a(i-1) | d(i-1) | theta(i)
+--- | --- | --- | --- | ---
+1 | 0 | 0 | 0.75 | theta(1)
+2 | -90 degrees | 0.35 | 0 | theta(2)-90
+3 | 0 | -1.25 | 1.5 | theta(3)
+4 |  -90 degrees | -0.054 | 0 | theta(4)
+5 | 90 degrees | 0 | 0 | theta(5)
+6 | -90 degrees | 0 | 0 | theta(6)
+7 | 0 | 0 | 0.3 | theta(7)
 
 #### 2. Using the DH parameter table you derived earlier, create individual transformation matrices about each joint. In addition, also generate a generalized homogeneous transform between base_link and gripper_link using only end-effector(gripper) pose.
 
@@ -104,20 +85,27 @@ Links | alpha(i-1) | a(i-1) | d(i-1) | theta(i)
 
 
 #### 3. Decouple Inverse Kinematics problem into Inverse Position Kinematics and inverse Orientation Kinematics; doing so derive the equations to calculate all individual joint angles.
+Inverse Kinematics goal is the opposite of Forward Kinematics. In this case, the position and orientation of the end-effector is known and the goal is to calculate
+the joint angles of the arm of the robot. In this case, a closed-form solution is used for performance. In order to use the closed-form solution there are two key requirements
+of the robot:
+1.  3 neighboring joint axes must intersect at a single point (forming a spherical wrist)
+2.  3 neighboring joint axes are parallel
 
-And here's where you can draw out and show your math for the derivation of your theta angles. 
+The Kuka Arm satisfies the above conditions and thus closed-form is possible.
 
-![alt text][image2]
+![image8]
+
+
+![image9]
+
+
+![image10]
+
 
 ### Project Implementation
 
 #### 1. Fill in the `IK_server.py` file with properly commented python code for calculating Inverse Kinematics based on previously performed Kinematic Analysis. Your code must guide the robot to successfully complete 8/10 pick and place cycles. Briefly discuss the code you implemented and your results. 
 
-
-Here I'll talk about the code, what techniques I used, what worked and why, where the implementation might fail and how I might improve it if I were going to pursue this project further.  
-
-
-And just for fun, another example image:
-![alt text][image3]
+The code follows the process described above. Please see the code for detailed discussion.
 
 
